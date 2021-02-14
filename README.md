@@ -1,0 +1,3 @@
+# LetsMineSDK
+
+Minecraft Plugin SDK

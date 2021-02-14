@@ -1,0 +1,8 @@
+name: ${project.name}
+main: eu.letsmine.bukkit.plugin.LetsMinePlugin
+version: '${project.version}'
+description: ${project.description}
+website: https://www.letsmine.eu
+author: KleinCrafter
+depend: ${depend}
+api-version: 1.16

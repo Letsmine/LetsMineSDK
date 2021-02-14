@@ -1,0 +1,7 @@
+name: ${project.name}
+main: eu.letsmine.bungee.plugin.LetsMinePlugin
+version: '${project.version}'
+description: ${project.description}
+website: https://www.letsmine.eu
+author: KleinCrafter
+depends: ${depends}
