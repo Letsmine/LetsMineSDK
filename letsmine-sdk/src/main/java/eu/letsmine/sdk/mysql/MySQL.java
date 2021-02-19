@@ -5,8 +5,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLTimeoutException;
-import java.util.Optional;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -21,12 +19,6 @@ public final class MySQL {
 	
 	@Getter
     private final HikariDataSource ds;
-
-	@Deprecated(forRemoval = true)
-	private final BiConsumer<String, Throwable> errorLogger;
-
-	@Deprecated(forRemoval = true)
-	public static boolean connected = true;
 	
 	/**
 	 * Create a new MySQL Connection Pool
@@ -37,9 +29,7 @@ public final class MySQL {
 	 * @param errorLogger
 	 * @throws ClassNotFoundException 
 	 */
-	public MySQL(String url, String user, String password, BiConsumer<String, Throwable> errorLogger) throws ClassNotFoundException {
-		this.errorLogger = errorLogger;
-		
+	public MySQL(String url, String user, String password) throws ClassNotFoundException {
 	    Class.forName("org.mariadb.jdbc.Driver");
 		
         this.ds = new HikariDataSource();
@@ -61,29 +51,9 @@ public final class MySQL {
         this.ds.addDataSourceProperty("prepStmtCacheSize", "250");
         this.ds.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
 	}
-
-	@Deprecated(forRemoval = true)
-	public Optional<Connection> getOptionalConnection() {
-		try {
-			return Optional.of(getConnection());
-	    } catch (final SQLException ex) {
-	        if (connected) {
-	        	errorLogger.accept("Error while fetching connection: ", ex);
-	            connected = false;
-	        } else {
-	        	errorLogger.accept("MySQL connection lost", null);
-	        }
-	        return Optional.empty();
-	    }
-    }
 	
 	public Connection getConnection() throws SQLException {
-        final Connection connection = this.ds.getConnection();
-        if (!connected && connection != null) {
-        	errorLogger.accept("MySQL connection rebuild", null);
-            connected = true;
-        }
-        return connection;
+        return this.ds.getConnection();
 	}
 	
 	/**

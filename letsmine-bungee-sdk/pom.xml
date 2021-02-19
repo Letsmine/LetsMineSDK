@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>eu.letsmine</groupId>
 		<artifactId>letsmine-parent-sdk</artifactId>
-		<version>1.3.0</version>
+		<version>1.4.0</version>
 	</parent>
 	
 	<artifactId>letsmine-bungee-sdk</artifactId>
