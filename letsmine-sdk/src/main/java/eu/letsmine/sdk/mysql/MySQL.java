@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLTimeoutException;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -20,13 +21,12 @@ public final class MySQL {
 	
 	@Getter
     private final HikariDataSource ds;
-	
+
+	@Deprecated(forRemoval = true)
 	private final BiConsumer<String, Throwable> errorLogger;
 
+	@Deprecated(forRemoval = true)
 	public static boolean connected = true;
-	public static boolean mb4 = false;
-	
-	private Connection conn;
 	
 	/**
 	 * Create a new MySQL Connection Pool
@@ -84,14 +84,6 @@ public final class MySQL {
             connected = true;
         }
         return connection;
-	}
-	
-	public boolean hasConnection() {
-		try {
-			return this.conn != null || this.conn.isValid(1);
-		} catch (SQLException e) {
-			return false;
-		}
 	}
 	
 	/**

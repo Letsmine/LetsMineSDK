@@ -1,6 +1,5 @@
 package eu.letsmine.bungee.command;
 
-import java.util.UUID;
 import java.util.logging.Level;
 
 import eu.letsmine.bungee.ILetsMineBungeePlugin;
@@ -8,7 +7,6 @@ import eu.letsmine.sdk.SessionKeys;
 import eu.letsmine.session.SessionAPI;
 import eu.letsmine.session.SessionObject;
 import net.md_5.bungee.api.CommandSender;
-import net.md_5.bungee.api.chat.BaseComponent;
 
 public abstract class AsyncCommand<T extends ILetsMineBungeePlugin> extends ICommand<T> {
 
