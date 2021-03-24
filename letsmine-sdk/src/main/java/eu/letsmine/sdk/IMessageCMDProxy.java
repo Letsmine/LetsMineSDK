@@ -65,4 +65,9 @@ public interface IMessageCMDProxy<T extends IMessageCMD<CMD>, CMD> extends IMess
 		getMessageProxy().sendDebugMessage(position, sender, bundleKey, args);
 	}
 	
+	@Override
+	default void sendNoPermissionMessage(CMD sender) {
+		getMessageProxy().sendNoPermissionMessage(sender);
+	}
+	
 }
