@@ -12,6 +12,7 @@ import com.zaxxer.hikari.HikariDataSource;
 
 import eu.letsmine.functional.SQLExceptionConsumer;
 import eu.letsmine.functional.SQLExceptionFunction;
+import eu.letsmine.functional.SQLExceptionSupplier;
 import lombok.Getter;
 import lombok.NonNull;
 
@@ -225,6 +226,36 @@ public final class MySQL {
 	 * @param sql
 	 * @param prepareStatementConsumer
 	 * @param resultConsumer
+	 * @param errorConsumer <br><code>SQLException</code> if a database access error occurs;
+     * this method is called on a closed  <code>PreparedStatement</code>
+     * or the SQL statement returns a <code>ResultSet</code> object
+     * <br><code>SQLTimeoutException</code> when the driver has determined that the
+     * timeout value that was specified by the {@code setQueryTimeout}
+     * method has been exceeded and has at least attempted to cancel
+     * the currently running {@code Statement}
+	 * @return
+	 */
+	public <R> R apply(SQLExceptionSupplier<String> sql, SQLExceptionConsumer<PreparedStatement> prepareStatementConsumer, @NonNull SQLExceptionFunction<ResultSet, R> resultConsumer, Function<? super SQLException, R> errorConsumer) {
+		try (var connection = getConnection()) {
+			try (var prepareStatement = connection.prepareStatement(sql.get())) {
+				if (prepareStatementConsumer != null) {
+					prepareStatementConsumer.accept(prepareStatement);
+				}
+				try (var resultSet = prepareStatement.executeQuery()) {
+					return resultConsumer.apply(resultSet);
+				}
+			}
+		} catch (SQLException e) {
+			return errorConsumer.apply(e);
+		}
+	}
+
+	/**
+	 * 
+	 * @param <R>
+	 * @param sql
+	 * @param prepareStatementConsumer
+	 * @param resultConsumer
 	 * @throws SQLException if a database access error occurs;
      * this method is called on a closed  <code>PreparedStatement</code>
      * or the SQL statement returns a <code>ResultSet</code> object
@@ -265,6 +296,31 @@ public final class MySQL {
 	public <R> R apply(String sql, SQLExceptionFunction<PreparedStatement, R> prepareStatementConsumer, Function<? super SQLException, R> errorConsumer) {
 		try (var connection = getConnection()) {
 			try (var prepareStatement = connection.prepareStatement(sql)) {
+				return prepareStatementConsumer.apply(prepareStatement);
+			}
+		} catch (SQLException e) {
+			return errorConsumer.apply(e);
+		}
+	}
+
+	/**
+	 * 
+	 * @param <R>
+	 * @param sql
+	 * @param prepareStatementConsumer
+	 * @param resultConsumer
+	 * @param errorConsumer <br><code>SQLException</code> if a database access error occurs;
+     * this method is called on a closed  <code>PreparedStatement</code>
+     * or the SQL statement returns a <code>ResultSet</code> object
+     * <br><code>SQLTimeoutException</code> when the driver has determined that the
+     * timeout value that was specified by the {@code setQueryTimeout}
+     * method has been exceeded and has at least attempted to cancel
+     * the currently running {@code Statement}
+	 * @return
+	 */
+	public <R> R apply(SQLExceptionSupplier<String> sql, SQLExceptionFunction<PreparedStatement, R> prepareStatementConsumer, Function<? super SQLException, R> errorConsumer) {
+		try (var connection = getConnection()) {
+			try (var prepareStatement = connection.prepareStatement(sql.get())) {
 				return prepareStatementConsumer.apply(prepareStatement);
 			}
 		} catch (SQLException e) {
@@ -346,6 +402,38 @@ public final class MySQL {
 	public int executeUpdate(@NonNull String sql, @NonNull SQLExceptionConsumer<PreparedStatement> prepareStatementConsumer, Consumer<? super SQLException> errorConsumer) {
 		try (var connection = getConnection()) {
 			try (var prepareStatement = connection.prepareStatement(sql)) {
+				prepareStatementConsumer.accept(prepareStatement);
+				return prepareStatement.executeUpdate();
+			}
+		} catch (SQLException e) {
+			if (errorConsumer != null) {
+				errorConsumer.accept(e);
+			}
+			return 0;
+		}
+	}
+
+    /**
+     * Executes the given SQL statement, which may be an <code>INSERT</code>,
+     * <code>UPDATE</code>, or <code>DELETE</code> statement or an
+     * SQL statement that returns nothing, such as an SQL DDL statement.
+     * @param sql an SQL Data Manipulation Language (DML) statement, such as <code>INSERT</code>, <code>UPDATE</code> or
+     * <code>DELETE</code>; or an SQL statement that returns nothing,
+     * such as a DDL statement.
+     * @param prepareStatementConsumer 
+	 * @throws SQLException if a database access error occurs;
+     * this method is called on a closed  <code>PreparedStatement</code>
+     * or the SQL statement returns a <code>ResultSet</code> object
+     * @throws SQLTimeoutException when the driver has determined that the
+     * timeout value that was specified by the {@code setQueryTimeout}
+     * method has been exceeded and has at least attempted to cancel
+     * the currently running {@code Statement}
+     * @return either (1) the row count for SQL Data Manipulation Language (DML) statements
+     *         or (2) 0 for SQL statements that return nothing
+	 */
+	public int executeUpdate(@NonNull SQLExceptionSupplier<String> sql, @NonNull SQLExceptionConsumer<PreparedStatement> prepareStatementConsumer, Consumer<? super SQLException> errorConsumer) {
+		try (var connection = getConnection()) {
+			try (var prepareStatement = connection.prepareStatement(sql.get())) {
 				prepareStatementConsumer.accept(prepareStatement);
 				return prepareStatement.executeUpdate();
 			}
